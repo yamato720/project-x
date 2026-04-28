@@ -1,0 +1,12 @@
+build/
+reports/
+logs/
+.Xil/
+*.log
+*.jou
+*.run_summary
+*.compile_summary
+*.link_summary
+*.xclbin
+*.xo
+*.csv
