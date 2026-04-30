@@ -1,11 +1,31 @@
 SHELL := /bin/bash
+empty :=
+space := $(empty) $(empty)
 
 TARGET ?= sw_emu
 DEVICE ?= xilinx_u55c_gen3x16_xdma_3_202210_1
 XPLATFORM ?= /opt/xilinx/platforms/$(DEVICE)/$(DEVICE).xpfm
 XILINX_XRT ?= /opt/xilinx/xrt
+VITIS_ROOT ?= $(strip $(shell \
+	if [ -n "$$XILINX_VITIS" ] && [ -x "$$XILINX_VITIS/bin/v++" ]; then \
+		printf '%s\n' "$$XILINX_VITIS"; \
+	elif [ -x /tools/Xilinx2022/Vitis/2022.2/bin/v++ ]; then \
+		printf '%s\n' /tools/Xilinx2022/Vitis/2022.2; \
+	elif [ -x /tools/Xilinx/Vitis/2022.2/bin/v++ ]; then \
+		printf '%s\n' /tools/Xilinx/Vitis/2022.2; \
+	elif [ -d /tools/Xilinx/Vitis ]; then \
+		find /tools/Xilinx/Vitis -maxdepth 1 -mindepth 1 -type d | sort -V | tail -n 1; \
+	elif command -v v++ >/dev/null 2>&1; then \
+		dirname "$$(dirname "$$(command -v v++)")"; \
+	fi))
+VITIS_VERSION := $(notdir $(VITIS_ROOT))
+XILINX_ROOT := $(patsubst %/Vitis/$(VITIS_VERSION),%,$(VITIS_ROOT))
+VIVADO_ROOT ?= $(if $(wildcard $(XILINX_ROOT)/Vivado/$(VITIS_VERSION)/bin/vivado),$(XILINX_ROOT)/Vivado/$(VITIS_VERSION))
+VITIS_HLS_ROOT ?= $(if $(wildcard $(XILINX_ROOT)/Vitis_HLS/$(VITIS_VERSION)/bin/vitis_hls),$(XILINX_ROOT)/Vitis_HLS/$(VITIS_VERSION))
+TOOLCHAIN_BINS := $(strip $(if $(VITIS_ROOT),$(VITIS_ROOT)/bin) $(if $(VITIS_HLS_ROOT),$(VITIS_HLS_ROOT)/bin) $(if $(VIVADO_ROOT),$(VIVADO_ROOT)/bin))
 
-VPP ?= v++
+VPP ?= $(if $(VITIS_ROOT),$(VITIS_ROOT)/bin/v++,v++)
+EMCONFIGUTIL ?= $(if $(VITIS_ROOT),$(VITIS_ROOT)/bin/emconfigutil,emconfigutil)
 CXX ?= g++
 HLS_JOBS ?= 2
 VIVADO_JOBS ?= 2
@@ -28,16 +48,31 @@ KERNEL_SRC := $(PROJECT_ROOT)/src/krnl_spmv.cpp
 HOST_SRC := $(PROJECT_ROOT)/src/host.cpp
 CONFIG := $(PROJECT_ROOT)/cfg/u55c.cfg
 
+ifneq ($(strip $(VITIS_ROOT)),)
+export XILINX_VITIS := $(VITIS_ROOT)
+endif
+export XILINX_XRT := $(XILINX_XRT)
+ifneq ($(strip $(VIVADO_ROOT)),)
+export XILINX_VIVADO := $(VIVADO_ROOT)
+endif
+ifneq ($(strip $(VITIS_HLS_ROOT)),)
+export XILINX_HLS := $(VITIS_HLS_ROOT)
+endif
+ifneq ($(strip $(TOOLCHAIN_BINS)),)
+export PATH := $(subst $(space),:,$(TOOLCHAIN_BINS)):$(PATH)
+endif
+
 CXXFLAGS += -std=c++17 -O2 -Wall -Wextra
 CXXFLAGS += -I$(XILINX_XRT)/include
 LDFLAGS += -L$(XILINX_XRT)/lib -lxrt_coreutil -luuid -pthread -lrt
+LDFLAGS += -Wl,-rpath,$(XILINX_XRT)/lib
 
 VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --hls.jobs $(HLS_JOBS)
 VPP_FLAGS += --temp_dir $(BUILD_DIR)/_x_temp --report_dir $(REPORT_DIR)
 VPP_LDFLAGS += --config $(CONFIG)
 VPP_LDFLAGS += --vivado.synth.jobs $(VIVADO_JOBS) --vivado.impl.jobs $(VIVADO_JOBS)
 
-.PHONY: help env host xo xclbin build run run-hw tmux-build clean cleanall
+.PHONY: help env host xo xclbin build run run-sw run-hw check tmux-build clean cleanall
 
 help:
 	@echo "Project-X U55C SpMV template"
@@ -48,21 +83,24 @@ help:
 	@echo "Build sw_emu xclbin:"
 	@echo "  make build TARGET=sw_emu"
 	@echo ""
-	@echo "Run sw_emu with parameters:"
-	@echo "  make run TARGET=sw_emu ROWS=8 SCALE=2 X0=1"
+	@echo "One-command software emulation:"
+	@echo "  make run-sw ROWS=8 SCALE=2 X0=1"
 	@echo ""
 	@echo "Build real U55C hardware xclbin:"
 	@echo "  make build TARGET=hw"
 	@echo ""
-	@echo "Run on U55C after hardware build:"
-	@echo "  make run TARGET=hw ROWS=8 SCALE=2 X0=1"
+	@echo "One-command hardware test:"
+	@echo "  make run-hw ROWS=8 SCALE=2 X0=1"
+	@echo ""
+	@echo "Run sw_emu and hardware test in sequence:"
+	@echo "  make check ROWS=8 SCALE=2 X0=1"
 	@echo ""
 	@echo "Long hardware build in tmux:"
 	@echo "  make tmux-build TARGET=hw"
 
 env:
 	@test -f "$(XPLATFORM)" || (echo "ERROR: platform not found: $(XPLATFORM)" && exit 1)
-	@command -v $(VPP) >/dev/null || (echo "ERROR: v++ not found. Source Vitis 2022.2 first." && exit 1)
+	@test -x "$(VPP)" || command -v $(VPP) >/dev/null || (echo "ERROR: v++ not found. Set VITIS_ROOT or VPP to a compatible Vitis install." && exit 1)
 	@test -d "$(XILINX_XRT)" || (echo "ERROR: XILINX_XRT not found: $(XILINX_XRT)" && exit 1)
 
 host: $(HOST_EXE)
@@ -85,7 +123,7 @@ $(XCLBIN): $(XO) $(CONFIG) | env
 
 $(EMCONFIG): | env
 	@mkdir -p $(BUILD_DIR)
-	emconfigutil --platform $(XPLATFORM) --od $(BUILD_DIR)
+	$(EMCONFIGUTIL) --platform $(XPLATFORM) --od $(BUILD_DIR)
 
 run: host $(XCLBIN)
 ifeq ($(TARGET),hw)
@@ -95,8 +133,13 @@ else
 	cd $(BUILD_DIR) && EMCONFIG_PATH=$$PWD XCL_EMULATION_MODE=$(TARGET) ../../host.exe krnl_spmv.xclbin $(ROWS) $(SCALE) $(X0) $(DEVICE_INDEX)
 endif
 
+run-sw:
+	$(MAKE) run TARGET=sw_emu ROWS=$(ROWS) SCALE=$(SCALE) X0=$(X0) DEVICE_INDEX=$(DEVICE_INDEX)
+
 run-hw:
 	$(MAKE) run TARGET=hw ROWS=$(ROWS) SCALE=$(SCALE) X0=$(X0) DEVICE_INDEX=$(DEVICE_INDEX)
+
+check: run-sw run-hw
 
 tmux-build:
 	@mkdir -p logs

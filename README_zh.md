@@ -64,13 +64,16 @@ Project-X/
 
 ## 3. 环境
 
-推荐先加载 Vitis 2022.2 和 XRT：
+推荐加载和 platform 兼容的 Vitis 与 XRT。当前默认 platform
+`xilinx_u55c_gen3x16_xdma_3_202210_1` 是 2022.1，因此不要用 2021.2 的
+`v++`。Makefile 会优先使用 `$XILINX_VITIS`，否则自动选择
+`/tools/Xilinx2022/Vitis/2022.2`；如果这套工具不存在，再回退到其他已安装版本。
 
 ```bash
 export XILINX_VITIS=/tools/Xilinx2022/Vitis/2022.2
 export XILINX_VIVADO=/tools/Xilinx2022/Vivado/2022.2
 export XILINX_HLS=/tools/Xilinx2022/Vitis_HLS/2022.2
-export PATH=/tools/Xilinx2022/Vitis/2022.2/bin:/tools/Xilinx2022/Vitis_HLS/2022.2/bin:/tools/Xilinx2022/Vivado/2022.2/bin:$PATH
+export PATH=$XILINX_VITIS/bin:$XILINX_HLS/bin:$XILINX_VIVADO/bin:$PATH
 source /opt/xilinx/xrt/setup.sh
 
 cd /home/pyx/ProjectFS/Project-X
@@ -81,7 +84,7 @@ cd /home/pyx/ProjectFS/Project-X
 先跑 `sw_emu`，验证 host、kernel 参数、xclbin 加载和结果对比：
 
 ```bash
-make run TARGET=sw_emu ROWS=8 SCALE=2 X0=1
+make run-sw ROWS=8 SCALE=2 X0=1
 ```
 
 参数含义：
@@ -210,13 +213,19 @@ make build TARGET=hw
 cd /home/pyx/ProjectFS/Project-X
 source /opt/xilinx/xrt/setup.sh
 xbutil examine
-make run TARGET=hw ROWS=8 SCALE=2 X0=1
+make run-hw ROWS=8 SCALE=2 X0=1
 ```
 
 如果要换设备编号：
 
 ```bash
-make run TARGET=hw ROWS=8 SCALE=2 X0=1 DEVICE_INDEX=1
+make run-hw ROWS=8 SCALE=2 X0=1 DEVICE_INDEX=1
+```
+
+如果想把软件仿真和真实硬件测试一次串起来：
+
+```bash
+make check ROWS=8 SCALE=2 X0=1
 ```
 
 ## 9. 已验证状态
@@ -224,7 +233,7 @@ make run TARGET=hw ROWS=8 SCALE=2 X0=1 DEVICE_INDEX=1
 当前已经验证：
 
 ```bash
-make run TARGET=sw_emu ROWS=8 SCALE=2 X0=1
+make run-sw ROWS=8 SCALE=2 X0=1
 ```
 
 真实 U55C `hw` bitstream 没有在这里启动，避免和当前 `pcg` 的长时间 bitstream 编译抢资源。
