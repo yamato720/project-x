@@ -43,9 +43,10 @@ HOST_EXE := $(BUILD_ROOT)/host.exe
 XO := $(BUILD_DIR)/krnl_spmv.xo
 XCLBIN := $(BUILD_DIR)/krnl_spmv.xclbin
 EMCONFIG := $(BUILD_DIR)/emconfig.json
+CHISEL_DIR := $(PROJECT_ROOT)/hardware/chisel
 
-KERNEL_SRC := $(PROJECT_ROOT)/src/krnl_spmv.cpp
-HOST_SRC := $(PROJECT_ROOT)/src/host.cpp
+KERNEL_SRC := $(PROJECT_ROOT)/hardware/krnl_spmv.cpp
+HOST_SRC := $(PROJECT_ROOT)/software/host.cpp
 CONFIG := $(PROJECT_ROOT)/cfg/u55c.cfg
 
 ifneq ($(strip $(VITIS_ROOT)),)
@@ -72,7 +73,7 @@ VPP_FLAGS += --temp_dir $(BUILD_DIR)/_x_temp --report_dir $(REPORT_DIR)
 VPP_LDFLAGS += --config $(CONFIG)
 VPP_LDFLAGS += --vivado.synth.jobs $(VIVADO_JOBS) --vivado.impl.jobs $(VIVADO_JOBS)
 
-.PHONY: help env host xo xclbin build run run-sw run-hw check tmux-build clean cleanall
+.PHONY: help env host xo xclbin build run run-sw run-hw check tmux-build chisel clean cleanall
 
 help:
 	@echo "Project-X U55C SpMV template"
@@ -97,6 +98,9 @@ help:
 	@echo ""
 	@echo "Long hardware build in tmux:"
 	@echo "  make tmux-build TARGET=hw"
+	@echo ""
+	@echo "Generate Chisel Verilog:"
+	@echo "  make chisel"
 
 env:
 	@test -f "$(XPLATFORM)" || (echo "ERROR: platform not found: $(XPLATFORM)" && exit 1)
@@ -148,8 +152,11 @@ tmux-build:
 	@echo "attach with:  tmux attach -t project-x-u55c-build"
 	@echo "detach with:  Ctrl-b d"
 
+chisel:
+	cd $(CHISEL_DIR) && sbt "runMain projectx.GenerateAll"
+
 clean:
 	rm -rf $(BUILD_ROOT) reports .Xil *.log *.jou *.csv *.run_summary
 
 cleanall: clean
-	rm -rf logs
+	rm -rf logs $(CHISEL_DIR)/generated $(CHISEL_DIR)/target $(CHISEL_DIR)/project/target

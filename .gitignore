@@ -2,6 +2,7 @@ build/
 reports/
 logs/
 .Xil/
+.run/
 *.log
 *.jou
 *.run_summary
@@ -11,3 +12,11 @@ logs/
 *.xo
 *.csv
 .ipcache/
+hardware/chisel/generated/
+hardware/chisel/target/
+hardware/chisel/project/target/
+*.fir
+*.anno.json
+metals.sbt
+.bsp/
+.scala-build/
