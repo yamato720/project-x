@@ -7,9 +7,11 @@ class MergeReducer(val lanes: Int, val dataWidth: Int) extends Module {
   require(lanes > 0, "lanes must be positive")
   require(dataWidth > 0, "dataWidth must be positive")
 
+  private val outputWidth = dataWidth + log2Ceil(lanes)
+
   val io = IO(new Bundle {
     val in = Input(Vec(lanes, Valid(SInt(dataWidth.W))))
-    val out = Output(Valid(SInt()))
+    val out = Output(Valid(SInt(outputWidth.W)))
   })
 
   private def reduceTree(nodes: Seq[SInt]): SInt = {

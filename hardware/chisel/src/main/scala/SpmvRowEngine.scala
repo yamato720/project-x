@@ -1,7 +1,7 @@
 package projectx
 
 import chisel3._
-import chisel3.util.Valid
+import chisel3.util.{log2Ceil, Valid}
 
 class SpmvRowEngine(
   val slotsPerRow: Int = 3,
@@ -13,6 +13,7 @@ class SpmvRowEngine(
   require(indexWidth > 0, "indexWidth must be positive")
 
   val laneProductWidth: Int = dataWidth * 2
+  val rowSumWidth: Int = laneProductWidth + log2Ceil(slotsPerRow) + dataWidth
 
   val io = IO(new Bundle {
     val start = Input(Bool())
@@ -23,7 +24,7 @@ class SpmvRowEngine(
     val xValues = Input(Vec(slotsPerRow, SInt(dataWidth.W)))
 
     val rowValid = Output(Bool())
-    val rowSum = Output(SInt())
+    val rowSum = Output(SInt(rowSumWidth.W))
   })
 
   val laneProducts = Wire(Vec(slotsPerRow, Valid(SInt(laneProductWidth.W))))
