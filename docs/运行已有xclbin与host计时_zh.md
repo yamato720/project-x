@@ -73,6 +73,8 @@ host 新增三个参数：
 --timing
 --warmup N
 --repeat N
+--kernel-mhz F
+--no-device-timing
 ```
 
 Makefile 对应变量：
@@ -86,6 +88,8 @@ make run-hw-existing VARIANT=hybrid ROWS=8 SCALE=2 X0=1 TIMING=1 WARMUP=1 REPEAT
 - `TIMING=1`：打印 host 分段耗时。当前 Makefile 默认就是 `TIMING=1`。
 - `WARMUP=N`：正式计时前先运行 N 次 kernel，不计入 kernel min/avg/max。
 - `REPEAT=N`：正式运行 N 次 kernel，并统计 kernel 提交到 `wait()` 返回的 min/avg/max。
+- `HOST_ARGS="--kernel-mhz F"`：指定设备侧时间换算周期时使用的频率，默认 `300.300293 MHz`。
+- `HOST_ARGS="--no-device-timing"`：关闭设备侧 kernel 时间戳输出。
 
 如果你只想看功能正确性、不打印计时，可以显式关闭：
 
@@ -109,6 +113,34 @@ Timing ms:
 ```
 
 这些时间是 host 视角耗时，不是硬件内部 cycle counter。`kernel_*` 统计的是 host 启动 kernel 到 `run.wait()` 返回之间的 wall-clock 时间，包含 XRT 调度开销。
+
+host 现在还会默认额外打印一组：
+
+```text
+Device timing:
+  device_kernel_mhz=...
+  device_kernel_min_ms=...
+  device_kernel_avg_ms=...
+  device_kernel_max_ms=...
+  device_kernel_min_cycles=...
+  device_kernel_avg_cycles=...
+  device_kernel_max_cycles=...
+```
+
+这组数据不是通过修改 kernel / bitstream 实现的，而是 host 直接读取 XRT/ERT 已有的设备侧命令时间戳，再按指定 MHz 换算出的周期数。
+
+优点：
+
+- 三个 variant 都统一可用
+- 不需要额外改 kernel 接口
+- 不需要为了计时重做一版专用 bitstream
+- 比 host wall-clock 更接近设备侧执行时间
+
+边界：
+
+- 它仍然不是 kernel 内部分阶段计数器
+- 它反映的是设备侧这次 kernel command 的执行时间
+- 比 host `kernel_*` 更“干净”，但和 HLS 报告里的理论 latency 仍不是同一个口径
 
 ## 哪些目标会重新构建
 

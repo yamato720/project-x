@@ -25,6 +25,8 @@
   说明哪些逻辑适合 HLS，哪些适合 Chisel/RTL。
 - [HLS外壳_Chisel计算核_zh.md](~/ProjectFS/Project-X/docs/HLS外壳_Chisel计算核_zh.md)
   说明 HLS 只做 XRT/AXI 接口、Chisel 接管 compute pipeline 的混合架构边界和落地步骤。
+- [外积Tile优化收益与后续方向_zh.md](~/ProjectFS/Project-X/docs/外积Tile优化收益与后续方向_zh.md)
+  总结这次 `outer_product_tile_bits` 外积 tile 化为什么能带来 `2x+` 提升，以及后续继续提速的优先方向。
 - [多BlackBox共存问题_zh.md](~/ProjectFS/Project-X/docs/多BlackBox共存问题_zh.md)
   总结 `chisel_core` 下两个 RTL black-box 共存时，floating-point 依赖在 HLS/VPL 导出链路里的问题与修法。
 - [hardware/chisel/README.md](~/ProjectFS/Project-X/hardware/chisel/README.md)

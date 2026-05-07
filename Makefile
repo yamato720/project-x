@@ -215,6 +215,7 @@ help:
 	@echo ""
 	@echo "Host-side timing:"
 	@echo "  make run-hw-existing VARIANT=hybrid TIMING=1 WARMUP=1 REPEAT=5"
+	@echo "  make run-hw-existing VARIANT=hybrid TIMING=1 HOST_ARGS=\"--kernel-mhz 300.300293\""
 	@echo ""
 	@echo "Run sw_emu and hardware test in sequence:"
 	@echo "  make check ROWS=8 SCALE=2 X0=1"

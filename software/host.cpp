@@ -5,10 +5,12 @@
 #include <exception>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "ert.h"
 #include "experimental/xrt_bo.h"
 #include "experimental/xrt_device.h"
 #include "experimental/xrt_kernel.h"
@@ -17,12 +19,21 @@ namespace {
 
 constexpr int kSlotsPerRow = 3;
 constexpr int kMaxRowsForOuterProduct = 512;
+constexpr double kDefaultKernelMHz = 300.300293;
 
 struct HostOptions {
     unsigned int device_index = 0;
     bool timing = false;
+    bool device_timing = true;
+    double kernel_mhz = kDefaultKernelMHz;
     unsigned int repeat = 1;
     unsigned int warmup = 0;
+};
+
+struct DeviceKernelTiming {
+    bool valid = false;
+    double duration_ms = 0.0;
+    double duration_cycles = 0.0;
 };
 
 using Clock = std::chrono::steady_clock;
@@ -89,6 +100,17 @@ HostOptions parse_options(int argc, char** argv) {
             }
             options.warmup = parse_uint(argv[arg], "warmup");
             options.timing = true;
+        } else if (current == "--kernel-mhz") {
+            if (++arg >= argc) {
+                throw std::runtime_error("--kernel-mhz requires a value");
+            }
+            options.kernel_mhz = parse_double(argv[arg], "kernel_mhz");
+            if (options.kernel_mhz <= 0.0) {
+                throw std::runtime_error("kernel_mhz must be > 0");
+            }
+            options.timing = true;
+        } else if (current == "--no-device-timing") {
+            options.device_timing = false;
         } else if (!current.empty() && current[0] != '-' && !device_index_seen) {
             options.device_index = parse_uint(argv[arg], "device_index");
             device_index_seen = true;
@@ -109,7 +131,9 @@ void usage(const char* argv0) {
               << "计时选项：\n"
               << "  --timing      打印 host 侧分段耗时\n"
               << "  --warmup N    正式计时前先运行 N 次 kernel\n"
-              << "  --repeat N    正式计时运行 N 次 kernel，输出 min/avg/max\n";
+              << "  --repeat N    正式计时运行 N 次 kernel，输出 min/avg/max\n"
+              << "  --kernel-mhz  设备侧时间换算周期时使用的频率，默认 300.300293 MHz\n"
+              << "  --no-device-timing  关闭设备侧 kernel 时间戳输出\n";
 }
 
 // 生成一个很小的 ELLPACK 风格三对角矩阵，让 kernel 输入完全可控，
@@ -187,6 +211,58 @@ xrt::bo make_bo(xrt::device& device, xrt::kernel& kernel, int arg_index, const s
     // 先写入 host 可见映射区，再同步到 device 侧 BO。
     bo.sync(XCL_BO_SYNC_BO_TO_DEVICE, data.size() * sizeof(T), 0);
     return bo;
+}
+
+void configure_run_args(xrt::run& run,
+                        int rows,
+                        double scale,
+                        xrt::bo& col_idx_bo,
+                        xrt::bo& values_bo,
+                        xrt::bo& x_bo,
+                        xrt::bo& y_bo,
+                        xrt::bo& yy_t_bo) {
+    run.set_arg(0, rows);
+    run.set_arg(1, scale);
+    run.set_arg(2, col_idx_bo);
+    run.set_arg(3, values_bo);
+    run.set_arg(4, x_bo);
+    run.set_arg(5, y_bo);
+    run.set_arg(6, yy_t_bo);
+}
+
+bool enable_device_kernel_timestamps(xrt::run& run) {
+    if (auto pkt = run.get_ert_packet()) {
+        auto* skcmd = to_start_krnl_pkg(pkt);
+        skcmd->stat_enabled = 1;
+        return true;
+    }
+    return false;
+}
+
+DeviceKernelTiming read_device_kernel_timing(const xrt::run& run, double kernel_mhz) {
+    DeviceKernelTiming timing;
+    auto* pkt = run.get_ert_packet();
+    if (!pkt) {
+        return timing;
+    }
+
+    auto* skcmd = to_start_krnl_pkg(pkt);
+    if (!skcmd->stat_enabled) {
+        return timing;
+    }
+
+    auto* timestamps = ert_start_kernel_timestamps(skcmd);
+    const uint64_t running_ns = timestamps->skc_timestamps[ERT_CMD_STATE_RUNNING];
+    const uint64_t completed_ns = timestamps->skc_timestamps[ERT_CMD_STATE_COMPLETED];
+    if (running_ns == 0 || completed_ns == 0 || completed_ns < running_ns) {
+        return timing;
+    }
+
+    const uint64_t duration_ns = completed_ns - running_ns;
+    timing.valid = true;
+    timing.duration_ms = static_cast<double>(duration_ns) / 1.0e6;
+    timing.duration_cycles = (static_cast<double>(duration_ns) * kernel_mhz) / 1000.0;
+    return timing;
 }
 
 } // 匿名 namespace
@@ -285,18 +361,37 @@ int main(int argc, char** argv) {
         std::cout << "\n";
 
         for (unsigned int iter = 0; iter < options.warmup; ++iter) {
-            auto run = kernel(rows, scale, col_idx_bo, values_bo, x_bo, y_bo, yy_t_bo);
+            xrt::run run(kernel);
+            configure_run_args(run, rows, scale, col_idx_bo, values_bo, x_bo, y_bo, yy_t_bo);
+            if (options.device_timing) {
+                enable_device_kernel_timestamps(run);
+            }
+            run.start();
             run.wait();
         }
 
         std::vector<double> kernel_ms;
+        std::vector<double> device_kernel_ms;
+        std::vector<double> device_kernel_cycles;
         kernel_ms.reserve(options.repeat);
+        device_kernel_ms.reserve(options.repeat);
+        device_kernel_cycles.reserve(options.repeat);
         for (unsigned int iter = 0; iter < options.repeat; ++iter) {
+            xrt::run run(kernel);
+            configure_run_args(run, rows, scale, col_idx_bo, values_bo, x_bo, y_bo, yy_t_bo);
+            const bool device_timing_enabled = options.device_timing && enable_device_kernel_timestamps(run);
             const auto kernel_start = Clock::now();
-            auto run = kernel(rows, scale, col_idx_bo, values_bo, x_bo, y_bo, yy_t_bo);
+            run.start();
             run.wait();
             const auto kernel_end = Clock::now();
             kernel_ms.push_back(elapsed_ms(kernel_start, kernel_end));
+            if (device_timing_enabled) {
+                const auto device_timing = read_device_kernel_timing(run, options.kernel_mhz);
+                if (device_timing.valid) {
+                    device_kernel_ms.push_back(device_timing.duration_ms);
+                    device_kernel_cycles.push_back(device_timing.duration_cycles);
+                }
+            }
         }
 
         // 把输出从 device 拉回 host，再和 CPU golden 做逐项比较。
@@ -362,6 +457,39 @@ int main(int argc, char** argv) {
                       << "  buffer_d2h=" << elapsed_ms(d2h_start, d2h_end) << "\n"
                       << "  verify=" << elapsed_ms(verify_start, verify_end) << "\n"
                       << "  total=" << elapsed_ms(total_start, total_end) << "\n";
+
+            if (options.device_timing) {
+                if (!device_kernel_ms.empty()) {
+                    const auto device_minmax =
+                        std::minmax_element(device_kernel_ms.begin(), device_kernel_ms.end());
+                    const auto cycle_minmax =
+                        std::minmax_element(device_kernel_cycles.begin(), device_kernel_cycles.end());
+                    double device_sum_ms = 0.0;
+                    double cycle_sum = 0.0;
+                    for (double value : device_kernel_ms) {
+                        device_sum_ms += value;
+                    }
+                    for (double value : device_kernel_cycles) {
+                        cycle_sum += value;
+                    }
+                    const double device_avg_ms =
+                        device_sum_ms / static_cast<double>(device_kernel_ms.size());
+                    const double cycle_avg =
+                        cycle_sum / static_cast<double>(device_kernel_cycles.size());
+
+                    std::cout << "Device timing:\n"
+                              << "  device_kernel_mhz=" << options.kernel_mhz << "\n"
+                              << "  device_kernel_min_ms=" << *device_minmax.first << "\n"
+                              << "  device_kernel_avg_ms=" << device_avg_ms << "\n"
+                              << "  device_kernel_max_ms=" << *device_minmax.second << "\n"
+                              << "  device_kernel_min_cycles=" << *cycle_minmax.first << "\n"
+                              << "  device_kernel_avg_cycles=" << cycle_avg << "\n"
+                              << "  device_kernel_max_cycles=" << *cycle_minmax.second << "\n";
+                } else {
+                    std::cout << "Device timing:\n"
+                              << "  device_kernel=unavailable\n";
+                }
+            }
         }
 
         std::cout << "PASS\n";

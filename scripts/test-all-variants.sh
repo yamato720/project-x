@@ -54,12 +54,14 @@ print_summary() {
 
     echo
     echo "==== Timing Summary ===="
-    printf "%-14s %-12s %-12s %-12s %-12s %-12s\n" \
-        "variant" "kernel_min" "kernel_avg" "kernel_max" "buffer_h2d" "total"
+    printf "%-14s %-12s %-12s %-12s %-12s %-12s %-14s %-14s %-14s %-18s\n" \
+        "variant" "kernel_min" "kernel_avg" "kernel_max" "buffer_h2d" "total" \
+        "dev_min_ms" "dev_avg_ms" "dev_max_ms" "dev_avg_cycles"
 
-    while IFS='|' read -r variant kernel_min kernel_avg kernel_max buffer_h2d total; do
-        printf "%-14s %-12s %-12s %-12s %-12s %-12s\n" \
-            "$variant" "$kernel_min" "$kernel_avg" "$kernel_max" "$buffer_h2d" "$total"
+    while IFS='|' read -r variant kernel_min kernel_avg kernel_max buffer_h2d total dev_min_ms dev_avg_ms dev_max_ms dev_avg_cycles; do
+        printf "%-14s %-12s %-12s %-12s %-12s %-12s %-14s %-14s %-14s %-18s\n" \
+            "$variant" "$kernel_min" "$kernel_avg" "$kernel_max" "$buffer_h2d" "$total" \
+            "$dev_min_ms" "$dev_avg_ms" "$dev_max_ms" "$dev_avg_cycles"
     done < "$SUMMARY_FILE"
 }
 
@@ -73,6 +75,10 @@ run_tests() {
     local kernel_max
     local buffer_h2d
     local total
+    local device_kernel_min_ms
+    local device_kernel_avg_ms
+    local device_kernel_max_ms
+    local device_kernel_avg_cycles
 
     if [[ "$target" == "sw" ]]; then
         make_target="run-sw-existing"
@@ -94,9 +100,14 @@ run_tests() {
         kernel_max="$(extract_metric kernel_max "$log_file")"
         buffer_h2d="$(extract_metric buffer_h2d "$log_file")"
         total="$(extract_metric total "$log_file")"
+        device_kernel_min_ms="$(extract_metric device_kernel_min_ms "$log_file")"
+        device_kernel_avg_ms="$(extract_metric device_kernel_avg_ms "$log_file")"
+        device_kernel_max_ms="$(extract_metric device_kernel_max_ms "$log_file")"
+        device_kernel_avg_cycles="$(extract_metric device_kernel_avg_cycles "$log_file")"
 
-        printf '%s|%s|%s|%s|%s|%s\n' \
+        printf '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
             "$variant" "${kernel_min:--}" "${kernel_avg:--}" "${kernel_max:--}" "${buffer_h2d:--}" "${total:--}" \
+            "${device_kernel_min_ms:--}" "${device_kernel_avg_ms:--}" "${device_kernel_max_ms:--}" "${device_kernel_avg_cycles:--}" \
             >> "$SUMMARY_FILE"
     done
 }
