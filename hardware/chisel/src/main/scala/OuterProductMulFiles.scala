@@ -81,7 +81,6 @@ object OuterProductMulFiles {
     val wrapperFile = jsonString(dir.resolve("outer_product_mul_bits.v").toString)
     val ipWrapperFile = jsonString(dir.resolve("ip/outer_product_mul_dmul_ip/synth/outer_product_mul_dmul_ip.v").toString)
     val ipRfsFile = jsonString(dir.resolve("ip/outer_product_mul_dmul_ip/hdl/floating_point_v7_1_rfs.v").toString)
-
     // 这是 Vitis HLS 认识 RTL black-box 的核心文件：
     // - c_function_name 对应 krnl_spmv.cpp 里的函数调用名
     // - rtl_top_module_name 对应 Chisel 生成的 Verilog 顶层名

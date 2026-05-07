@@ -174,12 +174,13 @@ std::vector<double> cpu_outer_product(const std::vector<double>& y) {
 
 // 这里用函数模板复用“分配 BO / 填充 / sync”这套流程。
 // 如果想看 template <typename T>、sizeof(T)、bo.map<T*>() 的详细解释，
-// 见：/home/pyx/ProjectFS/Project-X/docs/C++模板与make_bo详解_zh.md
+// 见：~/ProjectFS/Project-X/docs/C++模板与make_bo详解_zh.md
 template <typename T>
 xrt::bo make_bo(xrt::device& device, xrt::kernel& kernel, int arg_index, const std::vector<T>& data) {
     // 为第 arg_index 个 kernel 参数分配 BO。
     // 这个参数最终落到哪个 HBM bank，不是在这里写死的，
-    // 而是由 hardware/krnl_spmv.cpp 里的端口名 + cfg/u55c.cfg 的 connectivity 共同决定。
+    // 而是由当前 VARIANT 选中的 hardware/krnl_spmv_*.cpp 里的端口名
+    // + cfg/u55c.cfg 的 connectivity 共同决定。
     xrt::bo bo(device, data.size() * sizeof(T), kernel.group_id(arg_index));
     auto mapped = bo.map<T*>();
     std::copy(data.begin(), data.end(), mapped);
@@ -235,7 +236,8 @@ int main(int argc, char** argv) {
         auto kernel = xrt::kernel(device, uuid.get(), "krnl_spmv");
         const auto xrt_setup_end = Clock::now();
 
-        // kernel 参数顺序定义在 hardware/krnl_spmv.cpp 的函数签名里：
+        // kernel 参数顺序定义在当前 VARIANT 选中的 hardware/krnl_spmv_*.cpp
+        // 的函数签名里：
         //   void krnl_spmv(int num_rows,
         //                  double scale,
         //                  const int* col_idx,

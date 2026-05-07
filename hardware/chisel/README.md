@@ -4,7 +4,7 @@
 
 安装、OpenJDK 版本切换和升级说明见：
 
-- [安装与版本切换_zh.md](/home/pyx/ProjectFS/Project-X/hardware/chisel/安装与版本切换_zh.md)
+- [安装与版本切换_zh.md](~/ProjectFS/Project-X/hardware/chisel/安装与版本切换_zh.md)
 
 ## 当前模块
 
@@ -41,7 +41,7 @@ hardware/chisel/
 ## 生成 Verilog
 
 ```bash
-cd /home/pyx/ProjectFS/Project-X/hardware/chisel
+cd ~/ProjectFS/Project-X/hardware/chisel
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export PATH="$JAVA_HOME/bin:$PATH"
 sbt "runMain projectx.GenerateAll"

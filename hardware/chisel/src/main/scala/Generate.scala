@@ -50,8 +50,30 @@ object GenerateOuterProductMul extends App {
   OuterProductMulFiles.write("generated/outer")
 }
 
+object GenerateOuterProductTile extends App {
+  ProjectXChiselEmitter.emitVerilog(
+    gen = new OuterProductTile,
+    targetDir = "generated/outer",
+    fileName = "outer_product_tile_bits.v"
+  )
+
+  OuterProductTileFiles.write("generated/outer")
+}
+
+object GenerateSpmvRowMulAdd extends App {
+  ProjectXChiselEmitter.emitVerilog(
+    gen = new SpmvRowMulAdd,
+    targetDir = "generated/spmv_row",
+    fileName = "spmv_row_muladd_bits.v"
+  )
+
+  SpmvRowMulAddFiles.write("generated/spmv_row")
+}
+
 object GenerateAll extends App {
   GenerateMergeReducer.main(Array.empty)
   GenerateSpmvRowEngine.main(Array.empty)
   GenerateOuterProductMul.main(Array.empty)
+  GenerateOuterProductTile.main(Array.empty)
+  GenerateSpmvRowMulAdd.main(Array.empty)
 }

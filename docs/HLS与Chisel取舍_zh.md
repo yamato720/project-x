@@ -360,8 +360,8 @@ Chisel 对规整状态向量路径的收益，通常比对稀疏 gather 主链�
 
 如果你想把这个判断和工程细节串起来，建议顺着看：
 
-- `/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_zh.md`
-- `/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md`
-- `/home/pyx/ProjectFS/Project-X/docs/BO与HBM映射_zh.md`
-- `/home/pyx/ProjectFS/test/hpc/pcg/Chisel_reimplementation_notes_zh.md`
+- `~/ProjectFS/Project-X/docs/C层到硬件实现_zh.md`
+- `~/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md`
+- `~/ProjectFS/Project-X/docs/BO与HBM映射_zh.md`
+- `~/ProjectFS/test/hpc/pcg/Chisel_reimplementation_notes_zh.md`
 

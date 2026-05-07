@@ -17,7 +17,7 @@
 那先去看：
 
 ```text
-/home/pyx/ProjectFS/Project-X/docs/BO与HBM映射_zh.md
+~/ProjectFS/Project-X/docs/BO与HBM映射_zh.md
 ```
 
 ---
@@ -77,7 +77,7 @@ host.exe + xclbin + XRT
 文件：
 
 ```text
-/home/pyx/ProjectFS/Project-X/software/host.cpp
+~/ProjectFS/Project-X/software/host.cpp
 ```
 
 作用：
@@ -99,7 +99,7 @@ host.exe + xclbin + XRT
 文件：
 
 ```text
-/home/pyx/ProjectFS/Project-X/hardware/krnl_spmv.cpp
+~/ProjectFS/Project-X/hardware/krnl_spmv.cpp
 ```
 
 作用：
@@ -115,7 +115,7 @@ host.exe + xclbin + XRT
 文件：
 
 ```text
-/home/pyx/ProjectFS/Project-X/cfg/u55c.cfg
+~/ProjectFS/Project-X/cfg/u55c.cfg
 ```
 
 当前内容：
@@ -135,7 +135,7 @@ sp=krnl_spmv_1.y:HBM[3]
 文件：
 
 ```text
-/home/pyx/ProjectFS/Project-X/Makefile
+~/ProjectFS/Project-X/Makefile
 ```
 
 作用：
@@ -164,7 +164,7 @@ void krnl_spmv(int num_rows,
 见：
 
 ```text
-/home/pyx/ProjectFS/Project-X/hardware/krnl_spmv.cpp
+~/ProjectFS/Project-X/hardware/krnl_spmv.cpp
 ```
 
 这几个参数在 HLS 里不会“自动猜”，而是由 pragma 决定接口类型。
@@ -194,7 +194,7 @@ void krnl_spmv(int num_rows,
 在综合报告里可以直接看到这些寄存器：
 
 ```text
-/home/pyx/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/syn/report/csynth.rpt
+~/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/syn/report/csynth.rpt
 ```
 
 里面能看到：
@@ -228,7 +228,7 @@ m_axi_gmem_y_*
 这些信号已经出现在生成的顶层 RTL 里：
 
 ```text
-/home/pyx/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/impl/verilog/krnl_spmv.v
+~/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/impl/verilog/krnl_spmv.v
 ```
 
 这就是“C 里的一个指针参数”在硬件世界里真正展开后的样子。
@@ -295,7 +295,7 @@ SlotLoop:
 关键报告：
 
 ```text
-/home/pyx/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/syn/report/krnl_spmv_Pipeline_RowLoop_csynth.rpt
+~/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/syn/report/krnl_spmv_Pipeline_RowLoop_csynth.rpt
 ```
 
 其中最关键的一行是：
@@ -345,7 +345,7 @@ krnl_spmv_krnl_spmv_Pipeline_RowLoop
 可以在这里看到：
 
 ```text
-/home/pyx/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/impl/verilog/krnl_spmv_krnl_spmv_Pipeline_RowLoop.v
+~/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/impl/verilog/krnl_spmv_krnl_spmv_Pipeline_RowLoop.v
 ```
 
 也就是说：

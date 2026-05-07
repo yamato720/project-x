@@ -225,7 +225,7 @@ auto run = kernel(rows, scale, col_idx_bo, values_bo, x_bo, y_bo);
 对应文件：
 
 ```text
-/home/pyx/ProjectFS/Project-X/hardware/krnl_spmv.cpp
+~/ProjectFS/Project-X/hardware/krnl_spmv.cpp
 ```
 
 ### 6.1 `s_axilite`
@@ -562,8 +562,8 @@ AXI4 m_axi             = kernel 真正去 HBM 读写数组数据的通道
 如果你现在想继续顺着这条线走，推荐这样看：
 
 1. 先看这份，建立“AXI 总线层”和“控制寄存器层”之间的关系
-2. 再看 [HLS pragma到U55C硬件对照_zh.md](</home/pyx/ProjectFS/Project-X/docs/HLS pragma到U55C硬件对照_zh.md:1>)，把 `s_axilite/m_axi` 和 pragma 对上
-3. 再看 [BO与HBM映射_zh.md](/home/pyx/ProjectFS/Project-X/docs/BO与HBM映射_zh.md:1)，把 base address / BO / HBM 串起来
-4. 最后回到 [krnl_spmv.cpp](/home/pyx/ProjectFS/Project-X/hardware/krnl_spmv.cpp:16) 和 [host.cpp](/home/pyx/ProjectFS/Project-X/software/host.cpp:156) 对照读
+2. 再看 [HLS pragma到U55C硬件对照_zh.md](<~/ProjectFS/Project-X/docs/HLS pragma到U55C硬件对照_zh.md:1>)，把 `s_axilite/m_axi` 和 pragma 对上
+3. 再看 [BO与HBM映射_zh.md](~/ProjectFS/Project-X/docs/BO与HBM映射_zh.md:1)，把 base address / BO / HBM 串起来
+4. 最后回到 [krnl_spmv.cpp](~/ProjectFS/Project-X/hardware/krnl_spmv.cpp:16) 和 [host.cpp](~/ProjectFS/Project-X/software/host.cpp:156) 对照读
 
 这样会比较顺。

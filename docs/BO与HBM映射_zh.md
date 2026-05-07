@@ -33,7 +33,7 @@ xrt::bo bo(device, data.size() * sizeof(T), kernel.group_id(arg_index));
 文件位置：
 
 ```text
-/home/pyx/ProjectFS/Project-X/software/host.cpp
+~/ProjectFS/Project-X/software/host.cpp
 ```
 
 它的意思不是“创建一个普通指针”，而是：
@@ -88,7 +88,7 @@ sp=krnl_spmv_1.y:HBM[3]
 文件位置：
 
 ```text
-/home/pyx/ProjectFS/Project-X/cfg/u55c.cfg
+~/ProjectFS/Project-X/cfg/u55c.cfg
 ```
 
 这里的意思是：
@@ -396,8 +396,8 @@ XRT 管理的一块设备内存对象
 
 如果想把这件事完全看顺，建议配合：
 
-- `/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_zh.md`
-- `/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md`
+- `~/ProjectFS/Project-X/docs/C层到硬件实现_zh.md`
+- `~/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md`
 
 这三份放一起看，基本就能把：
 

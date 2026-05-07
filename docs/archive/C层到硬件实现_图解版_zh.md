@@ -6,14 +6,14 @@
 配套详细说明见：
 
 ```text
-/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
+~/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
 ```
 
 如果你是被 `BO / HBM[0] / 起始地址 / 多个数组能不能共 bank` 这些问题卡住，
 还要配合看：
 
 ```text
-/home/pyx/ProjectFS/Project-X/docs/BO与HBM映射_zh.md
+~/ProjectFS/Project-X/docs/BO与HBM映射_zh.md
 ```
 
 ---
@@ -270,7 +270,7 @@ krnl_spmv_krnl_spmv_Pipeline_RowLoop.v (生成的 RTL)
 对应文件：
 
 ```text
-/home/pyx/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/impl/verilog/krnl_spmv_krnl_spmv_Pipeline_RowLoop.v
+~/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/krnl_spmv/krnl_spmv/krnl_spmv/solution/impl/verilog/krnl_spmv_krnl_spmv_Pipeline_RowLoop.v
 ```
 
 综合报告里还能看到实际 II：
@@ -432,7 +432,7 @@ PIPELINE 和 UNROLL 不是抽象概念，它们会对应到真实生成的 RTL �
 2. 再看：
 
 ```text
-/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
+~/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
 ```
 
 3. 最后边看源码边对照：

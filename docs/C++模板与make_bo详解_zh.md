@@ -16,7 +16,7 @@ xrt::bo make_bo(xrt::device& device, xrt::kernel& kernel, int arg_index, const s
 文件位置：
 
 ```text
-/home/pyx/ProjectFS/Project-X/software/host.cpp
+~/ProjectFS/Project-X/software/host.cpp
 ```
 
 这段代码同时涉及两层知识：
@@ -566,11 +566,11 @@ kernel 指针和 host 指针到底什么关系
 接着看这份：
 
 ```text
-/home/pyx/ProjectFS/Project-X/docs/BO与HBM映射_zh.md
+~/ProjectFS/Project-X/docs/BO与HBM映射_zh.md
 ```
 
 如果你想继续把 host / kernel / HBM / xclbin 整条链路串起来，看这份：
 
 ```text
-/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
+~/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
 ```

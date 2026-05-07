@@ -241,7 +241,7 @@ reports/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/
 在服务器的工程目录执行：
 
 ```bash
-cd /home/pyx/ProjectFS/Project-X
+cd ~/ProjectFS/Project-X
 make vivado-package
 ```
 
@@ -287,7 +287,7 @@ build/packages/project-x-vivado-view-full.tar.gz
 ./scripts/download-vivado-view.sh USER@SERVER ./project-x-vivado --reports-only
 ```
 
-如果服务器工程路径不是默认 `/home/pyx/ProjectFS/Project-X`，可以这样覆盖：
+如果服务器工程路径不是默认 `~/ProjectFS/Project-X`，可以这样覆盖：
 
 ```bash
 PROJECT_X_REMOTE_ROOT=/path/to/Project-X ./scripts/download-vivado-view.sh USER@SERVER ./project-x-vivado --min
@@ -334,32 +334,32 @@ powershell -ExecutionPolicy Bypass -File .\scripts\download-vivado-view.ps1 USER
 只下载 routed checkpoint：
 
 ```bash
-scp USER@SERVER:/home/pyx/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl/prj/prj.runs/impl_1/level0_wrapper_routed.dcp .
+scp USER@SERVER:~/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl/prj/prj.runs/impl_1/level0_wrapper_routed.dcp .
 ```
 
 下载报告目录：
 
 ```bash
-scp -r USER@SERVER:/home/pyx/ProjectFS/Project-X/reports/hw/xilinx_u55c_gen3x16_xdma_3_202210_1 ./project-x-hw-reports
+scp -r USER@SERVER:~/ProjectFS/Project-X/reports/hw/xilinx_u55c_gen3x16_xdma_3_202210_1 ./project-x-hw-reports
 ```
 
 下载完整 Vivado 工程目录：
 
 ```bash
-scp -r USER@SERVER:/home/pyx/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl ./project-x-vivado-vpl
+scp -r USER@SERVER:~/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl ./project-x-vivado-vpl
 ```
 
 大目录更推荐用 `rsync`，支持断点续传和进度显示：
 
 ```bash
-rsync -avP USER@SERVER:/home/pyx/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl ./project-x-vivado-vpl
-rsync -avP USER@SERVER:/home/pyx/ProjectFS/Project-X/reports/hw/xilinx_u55c_gen3x16_xdma_3_202210_1 ./project-x-hw-reports
+rsync -avP USER@SERVER:~/ProjectFS/Project-X/build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl ./project-x-vivado-vpl
+rsync -avP USER@SERVER:~/ProjectFS/Project-X/reports/hw/xilinx_u55c_gen3x16_xdma_3_202210_1 ./project-x-hw-reports
 ```
 
 如果你只想打一个压缩包下载，也可以在本地执行：
 
 ```bash
-ssh USER@SERVER 'cd /home/pyx/ProjectFS/Project-X && tar -czf - build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl reports/hw/xilinx_u55c_gen3x16_xdma_3_202210_1' > project-x-vivado-view.tar.gz
+ssh USER@SERVER 'cd ~/ProjectFS/Project-X && tar -czf - build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl reports/hw/xilinx_u55c_gen3x16_xdma_3_202210_1' > project-x-vivado-view.tar.gz
 ```
 
 本地解压：
@@ -371,7 +371,7 @@ tar -xzf project-x-vivado-view.tar.gz
 如果你已经在服务器 SSH shell 里，也可以先在服务器上打包：
 
 ```bash
-cd /home/pyx/ProjectFS/Project-X
+cd ~/ProjectFS/Project-X
 tar -czf project-x-vivado-view.tar.gz \
   build/hw/xilinx_u55c_gen3x16_xdma_3_202210_1/_x_temp/link/vivado/vpl \
   reports/hw/xilinx_u55c_gen3x16_xdma_3_202210_1
@@ -380,14 +380,14 @@ tar -czf project-x-vivado-view.tar.gz \
 然后在本地机器执行：
 
 ```bash
-scp USER@SERVER:/home/pyx/ProjectFS/Project-X/project-x-vivado-view.tar.gz .
+scp USER@SERVER:~/ProjectFS/Project-X/project-x-vivado-view.tar.gz .
 ```
 
 如果已经在服务器上执行了 `make vivado-package`，本地直接拉包即可：
 
 ```bash
-scp USER@SERVER:/home/pyx/ProjectFS/Project-X/build/packages/project-x-vivado-view-min.tar.gz .
-scp USER@SERVER:/home/pyx/ProjectFS/Project-X/build/packages/project-x-vivado-view-full.tar.gz .
+scp USER@SERVER:~/ProjectFS/Project-X/build/packages/project-x-vivado-view-min.tar.gz .
+scp USER@SERVER:~/ProjectFS/Project-X/build/packages/project-x-vivado-view-full.tar.gz .
 ```
 
 本地限制：

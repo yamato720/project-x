@@ -13,16 +13,16 @@
 相关文件：
 
 ```text
-/home/pyx/ProjectFS/Project-X/hardware/krnl_spmv.cpp
-/home/pyx/ProjectFS/Project-X/software/host.cpp
-/home/pyx/ProjectFS/Project-X/cfg/u55c.cfg
+~/ProjectFS/Project-X/hardware/krnl_spmv.cpp
+~/ProjectFS/Project-X/software/host.cpp
+~/ProjectFS/Project-X/cfg/u55c.cfg
 ```
 
 如果你想看更完整的长文解释，配合这两份一起看：
 
 ```text
-/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
-/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md
+~/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
+~/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md
 ```
 
 ---
@@ -81,7 +81,7 @@ PIPELINE / UNROLL pragma
 代码位置：
 
 ```text
-/home/pyx/ProjectFS/Project-X/hardware/krnl_spmv.cpp
+~/ProjectFS/Project-X/hardware/krnl_spmv.cpp
 ```
 
 这几条：
@@ -411,6 +411,6 @@ x       -> gmem_x   -> HBM[2]
 对应文件：
 
 ```text
-/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
-/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md
+~/ProjectFS/Project-X/docs/C层到硬件实现_zh.md
+~/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md
 ```

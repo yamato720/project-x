@@ -94,7 +94,7 @@ Chisel 7 建议用 OpenJDK 17，所以工程默认 Makefile 会优先选择：
 从项目根目录运行：
 
 ```bash
-cd /home/pyx/ProjectFS/Project-X
+cd ~/ProjectFS/Project-X
 make chisel
 ```
 
@@ -137,7 +137,7 @@ make chisel-env CHISEL_JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ```bash
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export PATH="$JAVA_HOME/bin:$PATH"
-cd /home/pyx/ProjectFS/Project-X/hardware/chisel
+cd ~/ProjectFS/Project-X/hardware/chisel
 sbt "runMain projectx.GenerateAll"
 ```
 

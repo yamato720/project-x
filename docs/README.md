@@ -4,39 +4,38 @@
 
 ## 快速运行与调试
 
-- [运行已有xclbin与host计时_zh.md](/home/pyx/ProjectFS/Project-X/docs/运行已有xclbin与host计时_zh.md)
+- [构建变体_zh.md](~/ProjectFS/Project-X/docs/构建变体_zh.md)
+  说明 `hls` / `hybrid` / `chisel_core` 三种 kernel 变体的构建、产物路径、顺序脚本和测试入口。
+- [运行已有xclbin与host计时_zh.md](~/ProjectFS/Project-X/docs/运行已有xclbin与host计时_zh.md)
   说明 `run-sw-existing` / `run-hw-existing`、host 计时、warmup/repeat。
-- [Vivado设计查看教程_zh.md](/home/pyx/ProjectFS/Project-X/docs/Vivado设计查看教程_zh.md)
-  说明 `make vivado-open` / `make vivado-routed`、X11 GUI 缩放、层级/资源/布局/时序怎么看，以及如何用 SSH 下载到 Linux/Windows/macOS 客户端。
 
 ## 代码研究
 
-- [C层到硬件实现_zh.md](/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_zh.md)
-  从 C/C++ kernel 看它如何落到硬件结构。
-- [C层到硬件实现_图解版_zh.md](/home/pyx/ProjectFS/Project-X/docs/C层到硬件实现_图解版_zh.md)
-  图解版数据路径说明。
-- [C++模板与make_bo详解_zh.md](/home/pyx/ProjectFS/Project-X/docs/C++模板与make_bo详解_zh.md)
+- [C++模板与make_bo详解_zh.md](~/ProjectFS/Project-X/docs/C++模板与make_bo详解_zh.md)
   解释 host 侧 `make_bo`、模板和 XRT BO 映射。
 
 ## 硬件接口与资源
 
-- [AXI与控制寄存器_zh.md](/home/pyx/ProjectFS/Project-X/docs/AXI与控制寄存器_zh.md)
-  解释 AXI-Lite 控制寄存器、kernel 启动和参数传递。
-- [BO与HBM映射_zh.md](/home/pyx/ProjectFS/Project-X/docs/BO与HBM映射_zh.md)
+- [BO与HBM映射_zh.md](~/ProjectFS/Project-X/docs/BO与HBM映射_zh.md)
   解释 host BO、kernel m_axi 端口和 U55C HBM bank 映射。
-- [HLS pragma到U55C硬件对照_zh.md](</home/pyx/ProjectFS/Project-X/docs/HLS pragma到U55C硬件对照_zh.md>)
-  对照 HLS pragma 和最终 U55C 硬件结构/资源影响。
 
 ## Chisel 与 HLS 集成
 
-- [HLS与Chisel取舍_zh.md](/home/pyx/ProjectFS/Project-X/docs/HLS与Chisel取舍_zh.md)
+- [HLS与Chisel取舍_zh.md](~/ProjectFS/Project-X/docs/HLS与Chisel取舍_zh.md)
   说明哪些逻辑适合 HLS，哪些适合 Chisel/RTL。
-- [Chisel_FP64_IP接入HLS_zh.md](/home/pyx/ProjectFS/Project-X/docs/Chisel_FP64_IP接入HLS_zh.md)
-  说明 Chisel wrapper、HLS black-box、Vivado FP64 multiply IP 如何接入外积阶段。
-- [hardware/chisel/README.md](/home/pyx/ProjectFS/Project-X/hardware/chisel/README.md)
+- [HLS外壳_Chisel计算核_zh.md](~/ProjectFS/Project-X/docs/HLS外壳_Chisel计算核_zh.md)
+  说明 HLS 只做 XRT/AXI 接口、Chisel 接管 compute pipeline 的混合架构边界和落地步骤。
+- [多BlackBox共存问题_zh.md](~/ProjectFS/Project-X/docs/多BlackBox共存问题_zh.md)
+  总结 `chisel_core` 下两个 RTL black-box 共存时，floating-point 依赖在 HLS/VPL 导出链路里的问题与修法。
+- [hardware/chisel/README.md](~/ProjectFS/Project-X/hardware/chisel/README.md)
   Chisel 子工程说明。
-- [hardware/chisel/安装与版本切换_zh.md](/home/pyx/ProjectFS/Project-X/hardware/chisel/安装与版本切换_zh.md)
+- [hardware/chisel/安装与版本切换_zh.md](~/ProjectFS/Project-X/hardware/chisel/安装与版本切换_zh.md)
   Chisel 7.11.0、sbt、OpenJDK 17+ 安装和版本切换说明。
+
+## 归档文档
+
+- [archive/README.md](~/ProjectFS/Project-X/docs/archive/README.md)
+  收纳基于旧内核单文件布局、旧 build/reports 路径和旧说明口径的历史文档。
 
 ## 当前设计边界
 
