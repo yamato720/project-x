@@ -1,5 +1,0 @@
-n 512
-nnz 1534
-max_iters 2048
-tau 9.9999999999999995e-21
-check_tolerance 1e-08
