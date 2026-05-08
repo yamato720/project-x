@@ -140,12 +140,24 @@ OuterProductRowLoop:
                 rhs_tile[tile_col] = projectx_double_to_bits(rhs);
             }
 
+            // 这三个宏都定义在 generated/outer/outer_product_tile.hpp 里：
+            // 1. DECLARE_OUTPUTS: 声明 64 个标量输出临时变量，对应 out0_bits..out63_bits
+            // 2. CALL: 把 lhs_tile[8] / rhs_tile[8] 展开成一次 HLS 调用
+            //    outer_product_tile_bits(lhs0_bits..lhs7_bits,
+            //                            rhs0_bits..rhs7_bits,
+            //                            out0_bits..out63_bits)
+            // 3. COPY_OUTPUTS: 再把 64 个标量结果拷回 out_tile[]
+            //
+            // v++/Vitis HLS 会通过 add_outer_product_blackbox.tcl 加入的
+            // outer_product_tile.json，把这个 C 函数名绑定到 Chisel RTL 顶层
+            // outer_product_tile_bits；RTL 内部再并行调 64 颗 FP64 multiply IP。
             PROJECTX_OUTER_PRODUCT_TILE_CALL(lhs_tile, rhs_tile, tile_out)
             PROJECTX_OUTER_PRODUCT_TILE_COPY_OUTPUTS(tile_out, out_tile)
 
         OuterProductStoreTile:
             for (int out_idx = 0; out_idx < kOuterTileSize * kOuterTileSize; ++out_idx) {
 #pragma HLS PIPELINE II=1
+                // out_tile[] 按 row-major 存放：out_idx = tile_row * 8 + tile_col。
                 const int tile_row = out_idx / kOuterTileSize;
                 const int tile_col = out_idx % kOuterTileSize;
                 const int global_row = row + tile_row;

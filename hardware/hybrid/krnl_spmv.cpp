@@ -95,12 +95,17 @@ OuterProductRowLoop:
                 rhs_tile[tile_col] = projectx_double_to_bits(rhs);
             }
 
+            // 宏定义见 generated/outer/outer_product_tile.hpp。
+            // 这里看起来像“数组接口”，但宏会把它展开成标量形式的
+            // outer_product_tile_bits(...) 调用；HLS 再用 outer_product_tile.json
+            // 把这个函数名绑定到 Chisel 生成的 RTL black-box 顶层。
             PROJECTX_OUTER_PRODUCT_TILE_CALL(lhs_tile, rhs_tile, tile_out)
             PROJECTX_OUTER_PRODUCT_TILE_COPY_OUTPUTS(tile_out, out_tile)
 
         OuterProductStoreTile:
             for (int out_idx = 0; out_idx < kOuterTileSize * kOuterTileSize; ++out_idx) {
 #pragma HLS PIPELINE II=1
+                // row-major 展平下标：out_idx = tile_row * 8 + tile_col。
                 const int tile_row = out_idx / kOuterTileSize;
                 const int tile_col = out_idx % kOuterTileSize;
                 const int global_row = row + tile_row;

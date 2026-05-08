@@ -11,6 +11,12 @@ import chisel3._
 //
 // 这样 Chisel 生成的 outer_product_mul_bits.v 里会实例化
 // outer_product_mul_dmul_ip，真正的乘法逻辑由 Vivado IP RTL 提供。
+//
+// 端口语义和 tile 版本里的乘法 IP 一样，只是这里服务的是单次标量乘法：
+// - aclk / aclken: 时钟和时钟使能
+// - s_axis_a_tvalid / s_axis_a_tdata: 左操作数有效和数据
+// - s_axis_b_tvalid / s_axis_b_tdata: 右操作数有效和数据
+// - m_axis_result_tvalid / m_axis_result_tdata: 结果有效和数据
 class OuterProductDmulIp extends BlackBox {
   override def desiredName: String = "outer_product_mul_dmul_ip"
 
@@ -40,6 +46,19 @@ class OuterProductDmulIp extends BlackBox {
 // 数据端口故意使用 UInt(64.W)，而不是 Chisel/Verilog 的 real/double：
 // HLS black-box 对整数位宽端口的映射最直接，64 bit 内容按 IEEE-754 double
 // bit pattern 透传给 Xilinx Floating Point IP。
+//
+// 这个单元素版本是外积早期接法的保留实现。当前 Project-X 的
+// hardware/chisel_core/krnl_spmv.cpp 和 hardware/hybrid/krnl_spmv.cpp
+// 已经切到 outer_product_tile_bits(...)，仓库里没有活跃 kernel 再直接调用
+// outer_product_mul_bits(...)。保留它的原因主要有两个：
+// 1. 作为最小可读示例，方便理解 HLS black-box 到单颗 FP IP 的接法
+// 2. 如果以后要回归逐元素调用或做对比实验，这套生成链仍然能直接使用
+//
+// 参数/端口含义：
+// - lhs_bits: 一个 lhs 标量，按 IEEE-754 double bit pattern 编码
+// - rhs_bits: 一个 rhs 标量，按 IEEE-754 double bit pattern 编码
+// - result_bits: 乘法结果 bit pattern
+// - result_bits_ap_vld: result_bits 对 HLS 可见的有效信号
 class OuterProductMul extends RawModule {
   override def desiredName: String = "outer_product_mul_bits"
 
@@ -65,6 +84,7 @@ class OuterProductMul extends RawModule {
   val result_bits_ap_vld = IO(Output(Bool()))
   val result_bits = IO(Output(UInt(64.W)))
 
+  // 单次 HLS 函数调用会被翻译成一次底层 FP multiply IP 请求。
   // 把 HLS 的一次函数调用翻译成 Floating Point IP 的一次 AXI-Stream 输入。
   // 当前 IP 配置为 NonBlocking 且没有 tready，因此 ap_start 同时作为两个
   // 输入通道的 tvalid；ap_ce 负责在 HLS 停顿时冻结 IP 的时钟使能。
