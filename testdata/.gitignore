@@ -1,0 +1,8 @@
+cgsolver/build/
+generated/*
+!generated/cgsolver/
+generated/cgsolver/*
+!generated/cgsolver/datasets/
+generated/cgsolver/datasets/*
+!generated/cgsolver/datasets/n512/
+!generated/cgsolver/datasets/n512/**
