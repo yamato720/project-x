@@ -1,0 +1,130 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cgsolver: generate",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-C",
+        "${workspaceFolder}/testdata/cgsolver",
+        "generate",
+        "SIZE=${input:cgsolverSize}",
+        "HBM_CHANNELS=${input:cgsolverHbmChannels}",
+        "TAU=${input:cgsolverTau}"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "cgsolver: build",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-C",
+        "${workspaceFolder}/testdata/cgsolver",
+        "build"
+      ],
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "cgsolver: prepare default debug",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-C",
+        "${workspaceFolder}/testdata/cgsolver",
+        "generate",
+        "build"
+      ],
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "cgsolver: prepare custom debug",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-C",
+        "${workspaceFolder}/testdata/cgsolver",
+        "generate",
+        "build",
+        "SIZE=${input:cgsolverSize}",
+        "HBM_CHANNELS=${input:cgsolverHbmChannels}",
+        "TAU=${input:cgsolverTau}"
+      ],
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "cgsolver: test",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-C",
+        "${workspaceFolder}/testdata/cgsolver",
+        "test",
+        "SIZE=${input:cgsolverSize}",
+        "HBM_CHANNELS=${input:cgsolverHbmChannels}",
+        "TAU=${input:cgsolverTau}"
+      ],
+      "group": "test",
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "cgsolver: render report",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-C",
+        "${workspaceFolder}/testdata/cgsolver",
+        "render-report",
+        "SIZE=${input:cgsolverSize}",
+        "HBM_CHANNELS=${input:cgsolverHbmChannels}"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "project-x: build host",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-C",
+        "${workspaceFolder}",
+        "host"
+      ],
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "cgsolverSize",
+      "type": "promptString",
+      "description": "CGSolver dataset size",
+      "default": "512"
+    },
+    {
+      "id": "cgsolverHbmChannels",
+      "type": "promptString",
+      "description": "CGSolver HBM channel count",
+      "default": "8"
+    },
+    {
+      "id": "cgsolverTau",
+      "type": "promptString",
+      "description": "CGSolver tau",
+      "default": "1e-20"
+    }
+  ]
+}

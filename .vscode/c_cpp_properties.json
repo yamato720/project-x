@@ -1,0 +1,37 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "Project-X",
+      "compilerPath": "/usr/bin/g++",
+      "cStandard": "c17",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-gcc-x64",
+      "includePath": [
+        "${workspaceFolder}/hardware",
+        "${workspaceFolder}/hardware/chisel/generated/outer",
+        "${workspaceFolder}/hardware/chisel/generated/spmv_row",
+        "${workspaceFolder}/testdata/cgsolver/include",
+        "/opt/xilinx/xrt/include",
+        "/tools/Xilinx2022/Vitis/2022.2/include",
+        "/usr/include",
+        "/usr/local/include"
+      ],
+      "defines": [
+        "__SYNTHESIS__=0"
+      ],
+      "browse": {
+        "limitSymbolsToIncludedHeaders": true,
+        "path": [
+          "${workspaceFolder}/hardware",
+          "${workspaceFolder}/hardware/chisel/generated/outer",
+          "${workspaceFolder}/hardware/chisel/generated/spmv_row",
+          "${workspaceFolder}/software",
+          "${workspaceFolder}/testdata/cgsolver",
+          "/opt/xilinx/xrt/include",
+          "/tools/Xilinx2022/Vitis/2022.2/include"
+        ]
+      }
+    }
+  ]
+}

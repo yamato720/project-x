@@ -1,0 +1,59 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug CGSolver (default n512_hbm8)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/testdata/cgsolver/build/cgsolver_verify",
+      "args": [
+        "${workspaceFolder}/testdata/generated/cgsolver/datasets/n512_hbm8"
+      ],
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "stopAtEntry": false,
+      "preLaunchTask": "cgsolver: prepare default debug",
+      "setupCommands": [
+        {
+          "description": "Enable GDB pretty printing",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "Debug CGSolver (custom dataset path)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/testdata/cgsolver/build/cgsolver_verify",
+      "args": [
+        "${input:cgsolverDatasetPath}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "stopAtEntry": false,
+      "preLaunchTask": "cgsolver: build",
+      "setupCommands": [
+        {
+          "description": "Enable GDB pretty printing",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "cgsolverDatasetPath",
+      "type": "promptString",
+      "description": "Path to CGSolver dataset directory",
+      "default": "${workspaceFolder}/testdata/generated/cgsolver/datasets/n512_hbm8"
+    }
+  ]
+}
