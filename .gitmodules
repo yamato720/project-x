@@ -1,3 +1,6 @@
 [submodule "Project-XS"]
 	path = Project-XS
 	url = git@github.com:yamato720/project-xs.git
+[submodule "Project-XPlus"]
+	path = Project-XPlus
+	url = git@github.com:yamato720/project-xplus.git

@@ -8,6 +8,8 @@
   HLS kernel 和 Chisel 模块。
 - `docs/`
   中文讲解文档与索引。
+- `Project-XPlus/`
+  Jacobi-PCG 多 kernel HLS/XRT 子工程，现已独立为 submodule。
 
 ## 目录
 
@@ -16,6 +18,7 @@ Project-X/
   Makefile
   cfg/
   docs/
+  Project-XPlus/
   hardware/
     chisel/
     krnl_spmv_common.hpp
@@ -29,6 +32,7 @@ Project-X/
 ## 快速入口
 
 - 文档索引：[docs/README.md](~/ProjectFS/Project-X/docs/README.md)
+- `Project-XPlus` 子工程：[Project-XPlus/README.md](~/ProjectFS/Project-X/Project-XPlus/README.md)
 - Kernel 变体：
   [hls/krnl_spmv.cpp](~/ProjectFS/Project-X/hardware/hls/krnl_spmv.cpp)、
   [hybrid/krnl_spmv.cpp](~/ProjectFS/Project-X/hardware/hybrid/krnl_spmv.cpp)、

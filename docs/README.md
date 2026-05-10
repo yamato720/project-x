@@ -9,6 +9,11 @@
 - [运行已有xclbin与host计时_zh.md](~/ProjectFS/Project-X/docs/运行已有xclbin与host计时_zh.md)
   说明 `run-sw-existing` / `run-hw-existing`、host 计时、warmup/repeat。
 
+## 子工程
+
+- [Project-XPlus/README.md](~/ProjectFS/Project-X/Project-XPlus/README.md)
+  `Project-XPlus` 是 Jacobi-PCG 多 kernel HLS/XRT 子工程，已作为独立 submodule 接入。
+
 ## 代码研究
 
 - [C++模板与make_bo详解_zh.md](~/ProjectFS/Project-X/docs/C++模板与make_bo详解_zh.md)
