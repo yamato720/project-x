@@ -11,6 +11,34 @@
 - `Project-XPlus/`
   Jacobi-PCG 多 kernel HLS/XRT 子工程，现已独立为 submodule。
 
+## Submodules
+
+当前仓库包含两个 submodule：
+
+- `Project-XS/`
+  周期级仿真与更高层生成抽象相关子工程。
+- `Project-XPlus/`
+  Jacobi-PCG 多 kernel HLS/XRT 子工程。
+
+第一次 clone 后，建议执行：
+
+```bash
+git submodule update --init --recursive
+```
+
+如果是直接 clone 新仓库，也可以一步完成：
+
+```bash
+git clone --recurse-submodules <repo-url>
+```
+
+后续如果父仓更新了 submodule 指针，同步方式是：
+
+```bash
+git pull
+git submodule update --init --recursive
+```
+
 ## 目录
 
 ```text
