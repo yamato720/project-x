@@ -8,6 +8,10 @@
       "cppStandard": "c++17",
       "intelliSenseMode": "linux-gcc-x64",
       "includePath": [
+        "${workspaceFolder}/Project-XS",
+        "${workspaceFolder}/Project-XS/src",
+        "${workspaceFolder}/Project-XS/src/include",
+        "${workspaceFolder}/Project-XS/test",
         "${workspaceFolder}/hardware",
         "${workspaceFolder}/hardware/chisel/generated/outer",
         "${workspaceFolder}/hardware/chisel/generated/spmv_row",
@@ -23,6 +27,10 @@
       "browse": {
         "limitSymbolsToIncludedHeaders": true,
         "path": [
+          "${workspaceFolder}/Project-XS",
+          "${workspaceFolder}/Project-XS/src",
+          "${workspaceFolder}/Project-XS/src/include",
+          "${workspaceFolder}/Project-XS/test",
           "${workspaceFolder}/hardware",
           "${workspaceFolder}/hardware/chisel/generated/outer",
           "${workspaceFolder}/hardware/chisel/generated/spmv_row",
