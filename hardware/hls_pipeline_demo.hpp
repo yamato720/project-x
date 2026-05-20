@@ -6,6 +6,7 @@
 // 这类只属于 host/golden model 的类型。
 #define PROJECTX_HLS_PIPELINE_DEMO_MAX_ITEMS 4096
 #define PROJECTX_HLS_PIPELINE_DEMO_LANES 4
+#define PROJECTX_HLS_TOP_PIPELINE_DEMO_ITEMS 4
 
 // compute stage 的核心算子，也就是 FPGA 侧真正要对每个 input[i] 做的计算。
 // input[i] = 3*i+1 这件事由 host 生成输入数组完成；这里接收的是已经读到

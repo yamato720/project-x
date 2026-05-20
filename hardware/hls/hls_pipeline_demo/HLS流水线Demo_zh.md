@@ -4,6 +4,7 @@
 
 - 共享头文件：`hardware/hls_pipeline_demo.hpp`
 - 单 kernel 内部流水 HLS kernel：`hardware/hls/hls_pipeline_demo/krnl_hls_pipeline_demo.cpp`
+- 顶层函数级流水 HLS kernel：`hardware/hls/hls_pipeline_demo/krnl_hls_top_pipeline_demo.cpp`
 - 多 kernel 级流水 HLS kernel：
   - `hardware/hls/hls_pipeline_demo/krnl_hls_pipeline_source.cpp`
   - `hardware/hls/hls_pipeline_demo/krnl_hls_pipeline_compute.cpp`
@@ -16,7 +17,7 @@
 
 ## 覆盖的流水线形式
 
-这个 demo 现在包含两组路径。
+这个 demo 现在包含三组路径。
 
 第一组是单 XRT kernel 内部流水：
 
@@ -32,7 +33,13 @@
 
 这三段函数在 top 函数里由 `hls::stream` 连接，并放在 `#pragma HLS DATAFLOW` 区域内。HLS 可以把它们综合成同时工作的任务级流水：load 可以继续读下一拍数据，compute 处理当前数据，store 写出更早的数据。
 
-第二组是真正的多 XRT kernel 级流水：
+第二组是单 XRT kernel 顶层函数级流水：
+
+- `krnl_hls_top_pipeline_demo`
+
+这一组把 `#pragma HLS PIPELINE II = 1` 直接放在 top 函数体上，并把内部固定 4 元素 micro-batch 的小循环完全展开。它的目的不是替代 DATAFLOW 版本，而是专门覆盖 HLS schedule 顶层摘要里的 `top_pipelined=yes` 形态。
+
+第三组是真正的多 XRT kernel 级流水：
 
 - `krnl_hls_pipeline_source`
 - `krnl_hls_pipeline_compute`
@@ -61,8 +68,9 @@ kernel 内部流水线由每个 stage 或每个独立 kernel 自己的循环表�
 更准确地说：
 
 - 单 kernel 版本覆盖 kernel 内部 `DATAFLOW`。
+- 顶层函数级版本覆盖 HLS top schedule 的 `PIPELINE`。
 - 三 kernel 版本覆盖硬件 kernel 与 kernel 之间的 stream pipeline。
-- 两个版本共用同一套数值公式和 host golden，便于对照它们的行为是否一致。
+- 三个版本共用同一套数值公式和 host golden，便于对照它们的行为是否一致。
 
 ## 数值意义
 
@@ -127,7 +135,7 @@ i    input    stage_value    delayed_value    output
 
 所以 `stage_value` 用于观察当前 compute 流水段的组合/展开计算结果，`delayed_value` 用于观察内部寄存器链带来的历史值，`output` 是最终写回 host 的结果。host 的 CPU golden 使用同一套公式逐项校验。
 
-在单 kernel 版本里，`load_stage -> compute_stage -> store_stage` 通过 kernel 内部 FIFO 连续流动。在三 kernel 版本里，`source` 从内存连续读 `input[i]`，`compute` 通过 AXI4-Stream 连续接收并计算，`sink` 再通过 AXI4-Stream 接收最终值并写回内存。host 不会每个周期手动喂一个 `i`，而是一次启动 kernel，让 FPGA 自己按 `item_count` 连续跑完整段数组。
+在单 kernel 版本里，`load_stage -> compute_stage -> store_stage` 通过 kernel 内部 FIFO 连续流动。顶层函数级版本固定处理 4 个元素，用来观察 top schedule 的函数级 pipeline。三 kernel 版本里，`source` 从内存连续读 `input[i]`，`compute` 通过 AXI4-Stream 连续接收并计算，`sink` 再通过 AXI4-Stream 接收最终值并写回内存。host 不会每个周期手动喂一个 `i`，而是一次启动 kernel，让 FPGA 自己按 `item_count` 连续跑完整段数组。
 
 ## 构建和运行
 
@@ -151,7 +159,7 @@ make -f Makefile.hls_pipeline_demo.mk xo TARGET=sw_emu
 make -f Makefile.hls_pipeline_demo.mk build TARGET=sw_emu
 ```
 
-运行 sw_emu。这个命令会先跑单 kernel 内部流水，再跑三 kernel 级流水：
+运行 sw_emu。这个命令会先跑单 kernel 内部流水，再跑顶层函数级流水，最后跑三 kernel 级流水：
 
 ```bash
 make -f Makefile.hls_pipeline_demo.mk run TARGET=sw_emu ITEMS=32
@@ -164,7 +172,7 @@ make -f Makefile.hls_pipeline_demo.mk run TARGET=sw_emu ITEMS=32 \
   HOST_ARGS="--timing --warmup 1 --repeat 5"
 ```
 
-这只会重编 demo host，不会重新综合 HLS kernel，也不会重新编译 bitstream。计时输出包含 host 侧分段耗时、单 kernel 版本耗时、三 kernel stream pipeline 整体耗时；如果 XRT/ERT 提供设备侧时间戳，还会输出各个 kernel 的设备侧毫秒数和按 `--kernel-mhz` 换算出的周期数。
+这只会重编 demo host，不会重新综合 HLS kernel，也不会重新编译 bitstream。计时输出包含 host 侧分段耗时、单 kernel 版本耗时、顶层函数级 pipeline 版本耗时、三 kernel stream pipeline 整体耗时；如果 XRT/ERT 提供设备侧时间戳，还会输出各个 kernel 的设备侧毫秒数和按 `--kernel-mhz` 换算出的周期数。
 
 手动编译真实硬件 bitstream。Vitis 的真实硬件产物仍是 XRT 加载的 `.xclbin`：
 
@@ -204,7 +212,7 @@ make -f Makefile.hls_pipeline_demo.mk run-bitstream \
 计时参数说明：
 
 - `--timing`：打开计时输出。
-- `--warmup N`：正式统计前先完整运行 N 次两组 demo。
+- `--warmup N`：正式统计前先完整运行 N 次三组 demo。
 - `--repeat N`：正式统计运行 N 次，输出 min/avg/max。
 - `--kernel-mhz FREQ`：设备侧纳秒时间换算周期时使用的 kernel 频率，默认 `300.300293` MHz。
 - `--no-device-timing`：只保留 host 侧墙钟时间，关闭 XRT/ERT 设备侧时间戳读取。

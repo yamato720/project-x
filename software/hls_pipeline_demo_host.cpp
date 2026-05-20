@@ -19,6 +19,7 @@
 namespace {
 
 constexpr double kDefaultKernelMHz = 300.300293;
+constexpr int kTopPipelineItems = PROJECTX_HLS_TOP_PIPELINE_DEMO_ITEMS;
 
 // host 命令行暴露测试规模、设备编号，以及可选的计时参数。
 struct HostOptions {
@@ -153,17 +154,18 @@ HostOptions parse_options(int argc, char** argv) {
 void usage(const char* argv0) {
     std::cerr << "用法：\n"
               << "  " << argv0 << " <xclbin> [item_count] [device_index] [--timing] [--warmup N] [--repeat N]\n\n"
-              << "这个 host 会依次启动两组 demo：\n"
+              << "这个 host 会依次启动三组 demo：\n"
               << "  1. krnl_hls_pipeline_demo 单 kernel 内部 DATAFLOW 流水\n"
-              << "  2. source -> compute -> sink 三 kernel 之间 AXI4-Stream 流水\n\n"
-              << "两组 demo 都检查三组数组：\n"
+              << "  2. krnl_hls_top_pipeline_demo 顶层函数级 PIPELINE 流水\n"
+              << "  3. source -> compute -> sink 三 kernel 之间 AXI4-Stream 流水\n\n"
+              << "三组 demo 都检查三组数组：\n"
               << "  stage_value   compute 流水段当前拍产生的值\n"
               << "  delayed_value 两级寄存器延迟链暴露出的历史值\n"
               << "  output        stage_value + delayed_value\n\n"
               << "计时选项：\n"
               << "  --timing      打印 host 侧分段耗时和 kernel 启动到完成耗时\n"
-              << "  --warmup N    正式计时前先运行 N 次两组 demo\n"
-              << "  --repeat N    正式计时运行 N 次两组 demo，输出 min/avg/max\n"
+              << "  --warmup N    正式计时前先运行 N 次三组 demo\n"
+              << "  --repeat N    正式计时运行 N 次三组 demo，输出 min/avg/max\n"
               << "  --kernel-mhz  设备侧时间换算周期时使用的频率，默认 300.300293 MHz\n"
               << "  --no-device-timing  关闭 XRT/ERT 设备侧 kernel 时间戳输出\n";
 }
@@ -296,7 +298,7 @@ bool check_demo_outputs(const char* title, const DemoBuffers& buffers, const Exp
 
     return check_array("stage_value", buffers.stage_mapped, expected.stage_value) &&
            check_array("delayed_value", buffers.delayed_mapped, expected.delayed_value) &&
-	           check_array("output", buffers.output_mapped, expected.output_value);
+           check_array("output", buffers.output_mapped, expected.output_value);
 }
 
 void configure_single_run(xrt::run& run,
@@ -308,6 +310,13 @@ void configure_single_run(xrt::run& run,
     run.set_arg(2, buffers.output_bo);
     run.set_arg(3, buffers.stage_bo);
     run.set_arg(4, buffers.delayed_bo);
+}
+
+void configure_top_pipeline_run(xrt::run& run, xrt::bo& input_bo, DemoBuffers& buffers) {
+    run.set_arg(0, input_bo);
+    run.set_arg(1, buffers.output_bo);
+    run.set_arg(2, buffers.stage_bo);
+    run.set_arg(3, buffers.delayed_bo);
 }
 
 bool enable_device_kernel_timestamps(xrt::run& run) {
@@ -378,8 +387,10 @@ int main(int argc, char** argv) {
 
         const auto prepare_start = Clock::now();
         const std::vector<int> input = build_input(options.item_count);
+        const std::vector<int> top_pipeline_input = build_input(kTopPipelineItems);
         // 先在 host 侧计算 golden，再启动 FPGA/sw_emu kernel。
         const ExpectedValues expected = build_expected(input);
+        const ExpectedValues top_pipeline_expected = build_expected(top_pipeline_input);
         const auto prepare_end = Clock::now();
 
         const auto xrt_setup_start = Clock::now();
@@ -389,6 +400,7 @@ int main(int argc, char** argv) {
         std::cout << "Loading xclbin: " << xclbin_path << "\n";
         auto uuid = device.load_xclbin(xclbin_path);
         auto single_kernel = xrt::kernel(device, uuid.get(), "krnl_hls_pipeline_demo");
+        auto top_pipeline_kernel = xrt::kernel(device, uuid.get(), "krnl_hls_top_pipeline_demo");
         auto source_kernel = xrt::kernel(device, uuid.get(), "krnl_hls_pipeline_source");
         auto compute_kernel = xrt::kernel(device, uuid.get(), "krnl_hls_pipeline_compute");
         auto sink_kernel = xrt::kernel(device, uuid.get(), "krnl_hls_pipeline_sink");
@@ -448,6 +460,59 @@ int main(int argc, char** argv) {
         const auto single_d2h_start = Clock::now();
         sync_outputs_from_device(single_buffers);
         const auto single_d2h_end = Clock::now();
+
+        // 顶层函数级 PIPELINE 版本签名是：
+        //   arg0 input
+        //   arg1 output
+        //   arg2 stage_value
+        //   arg3 delayed_value
+        // 它处理固定 4 元素 micro-batch，用来让 HLS top schedule 本身报告 Pipeline=1。
+        const auto top_pipeline_buffer_start = Clock::now();
+        auto top_pipeline_input_bo = make_input_bo(device, top_pipeline_kernel, 0, top_pipeline_input);
+        DemoBuffers top_pipeline_buffers = make_demo_buffers(
+            device, top_pipeline_kernel, 1, top_pipeline_kernel, 2, 3, kTopPipelineItems);
+        const auto top_pipeline_buffer_end = Clock::now();
+
+        std::cout << "Running top-level PIPELINE demo(item_count=" << kTopPipelineItems << ")\n";
+        if (options.warmup > 0 || options.repeat > 1) {
+            std::cout << "  warmup=" << options.warmup << " repeat=" << options.repeat << "\n";
+        }
+
+        for (unsigned int iter = 0; iter < options.warmup; ++iter) {
+            xrt::run run(top_pipeline_kernel);
+            configure_top_pipeline_run(run, top_pipeline_input_bo, top_pipeline_buffers);
+            run.start();
+            run.wait();
+        }
+
+        std::vector<double> top_pipeline_host_ms;
+        std::vector<double> top_pipeline_device_ms;
+        std::vector<double> top_pipeline_device_cycles;
+        top_pipeline_host_ms.reserve(options.repeat);
+        top_pipeline_device_ms.reserve(options.repeat);
+        top_pipeline_device_cycles.reserve(options.repeat);
+        for (unsigned int iter = 0; iter < options.repeat; ++iter) {
+            xrt::run run(top_pipeline_kernel);
+            configure_top_pipeline_run(run, top_pipeline_input_bo, top_pipeline_buffers);
+            const bool device_timing_enabled =
+                options.timing && options.device_timing && enable_device_kernel_timestamps(run);
+            const auto kernel_start = Clock::now();
+            run.start();
+            run.wait();
+            const auto kernel_end = Clock::now();
+            top_pipeline_host_ms.push_back(elapsed_ms(kernel_start, kernel_end));
+            if (device_timing_enabled) {
+                const auto timing = read_device_kernel_timing(run, options.kernel_mhz);
+                if (timing.valid) {
+                    top_pipeline_device_ms.push_back(timing.duration_ms);
+                    top_pipeline_device_cycles.push_back(timing.duration_cycles);
+                }
+            }
+        }
+
+        const auto top_pipeline_d2h_start = Clock::now();
+        sync_outputs_from_device(top_pipeline_buffers);
+        const auto top_pipeline_d2h_end = Clock::now();
 
         // 三 kernel 版本签名是：
         //   source:  arg0 input,        arg1 output_stream, arg2 item_count
@@ -571,6 +636,8 @@ int main(int argc, char** argv) {
         }
 
         const bool ok = check_demo_outputs("single-kernel", single_buffers, expected) &&
+                        check_demo_outputs(
+                            "top-level-pipeline", top_pipeline_buffers, top_pipeline_expected) &&
                         check_demo_outputs("kernel-to-kernel", stream_buffers, expected);
         if (!ok) {
             std::cerr << "ERROR: result mismatch\n";
@@ -586,6 +653,11 @@ int main(int argc, char** argv) {
                       << "  single_buffer_h2d=" << elapsed_ms(single_buffer_start, single_buffer_end) << "\n";
             print_summary("single_kernel_host", single_host_ms, "ms");
             std::cout << "  single_buffer_d2h=" << elapsed_ms(single_d2h_start, single_d2h_end) << "\n"
+                      << "  top_pipeline_buffer_h2d="
+                      << elapsed_ms(top_pipeline_buffer_start, top_pipeline_buffer_end) << "\n";
+            print_summary("top_pipeline_kernel_host", top_pipeline_host_ms, "ms");
+            std::cout << "  top_pipeline_buffer_d2h="
+                      << elapsed_ms(top_pipeline_d2h_start, top_pipeline_d2h_end) << "\n"
                       << "  stream_buffer_h2d=" << elapsed_ms(stream_buffer_start, stream_buffer_end) << "\n";
             print_summary("stream_pipeline_host", stream_host_ms, "ms");
             std::cout << "  stream_buffer_d2h=" << elapsed_ms(stream_d2h_start, stream_d2h_end) << "\n"
@@ -597,6 +669,8 @@ int main(int argc, char** argv) {
                           << "  device_kernel_mhz=" << options.kernel_mhz << "\n";
                 print_summary("single_kernel_device", single_device_ms, "ms");
                 print_summary("single_kernel_device", single_device_cycles, "cycles");
+                print_summary("top_pipeline_kernel_device", top_pipeline_device_ms, "ms");
+                print_summary("top_pipeline_kernel_device", top_pipeline_device_cycles, "cycles");
                 print_summary("source_kernel_device", source_device_ms, "ms");
                 print_summary("source_kernel_device", source_device_cycles, "cycles");
                 print_summary("compute_kernel_device", compute_device_ms, "ms");

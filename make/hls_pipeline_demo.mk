@@ -35,22 +35,25 @@ REPORT_DIR := $(PROJECT_ROOT)/reports/hls_pipeline_demo/$(TARGET)/$(DEVICE)
 LOG_DIR := $(PROJECT_ROOT)/logs/vpp/hls_pipeline_demo/$(TARGET)/$(DEVICE)
 
 SINGLE_KERNEL_NAME := krnl_hls_pipeline_demo
+TOP_PIPELINE_KERNEL_NAME := krnl_hls_top_pipeline_demo
 STREAM_SOURCE_KERNEL_NAME := krnl_hls_pipeline_source
 STREAM_COMPUTE_KERNEL_NAME := krnl_hls_pipeline_compute
 STREAM_SINK_KERNEL_NAME := krnl_hls_pipeline_sink
 KERNEL_HEADER := $(PROJECT_ROOT)/hardware/hls_pipeline_demo.hpp
 STREAM_KERNEL_HEADER := $(PROJECT_ROOT)/hardware/hls_pipeline_stream_common.hpp
 SINGLE_KERNEL_SRC := $(PROJECT_ROOT)/hardware/hls/hls_pipeline_demo/krnl_hls_pipeline_demo.cpp
+TOP_PIPELINE_KERNEL_SRC := $(PROJECT_ROOT)/hardware/hls/hls_pipeline_demo/krnl_hls_top_pipeline_demo.cpp
 STREAM_SOURCE_KERNEL_SRC := $(PROJECT_ROOT)/hardware/hls/hls_pipeline_demo/krnl_hls_pipeline_source.cpp
 STREAM_COMPUTE_KERNEL_SRC := $(PROJECT_ROOT)/hardware/hls/hls_pipeline_demo/krnl_hls_pipeline_compute.cpp
 STREAM_SINK_KERNEL_SRC := $(PROJECT_ROOT)/hardware/hls/hls_pipeline_demo/krnl_hls_pipeline_sink.cpp
 HOST_SRC := $(PROJECT_ROOT)/software/hls_pipeline_demo_host.cpp
 HOST_EXE := $(BUILD_ROOT)/host.exe
 SINGLE_XO := $(BUILD_DIR)/$(SINGLE_KERNEL_NAME).xo
+TOP_PIPELINE_XO := $(BUILD_DIR)/$(TOP_PIPELINE_KERNEL_NAME).xo
 STREAM_SOURCE_XO := $(BUILD_DIR)/$(STREAM_SOURCE_KERNEL_NAME).xo
 STREAM_COMPUTE_XO := $(BUILD_DIR)/$(STREAM_COMPUTE_KERNEL_NAME).xo
 STREAM_SINK_XO := $(BUILD_DIR)/$(STREAM_SINK_KERNEL_NAME).xo
-XOS := $(SINGLE_XO) $(STREAM_SOURCE_XO) $(STREAM_COMPUTE_XO) $(STREAM_SINK_XO)
+XOS := $(SINGLE_XO) $(TOP_PIPELINE_XO) $(STREAM_SOURCE_XO) $(STREAM_COMPUTE_XO) $(STREAM_SINK_XO)
 XCLBIN := $(BUILD_DIR)/hls_pipeline_demo.xclbin
 BITSTREAM_XCLBIN ?= $(BUILD_ROOT)/hw/$(DEVICE)/hls_pipeline_demo.xclbin
 EMCONFIG := $(BUILD_DIR)/emconfig.json
@@ -91,7 +94,7 @@ VPP_FLAGS += -t $(TARGET) --platform $(XPLATFORM) --save-temps --hls.jobs $(HLS_
 VPP_FLAGS += --temp_dir $(BUILD_DIR)/_x_temp --report_dir $(REPORT_DIR) --log_dir $(LOG_DIR)
 VPP_FLAGS += --remote_ip_cache $(PROJECT_ROOT)/.ipcache
 VPP_FLAGS += -I$(PROJECT_ROOT)/hardware
-# hls_pipeline_demo.cfg 负责声明四个 kernel 实例，并把三 kernel 版本的
+# hls_pipeline_demo.cfg 负责声明五个 kernel 实例，并把三 kernel 版本的
 # AXI4-Stream 端口连成 source -> compute -> sink。
 VPP_LDFLAGS += --config $(CONFIG)
 VPP_LDFLAGS += --vivado.synth.jobs $(VIVADO_JOBS) --vivado.impl.jobs $(VIVADO_JOBS)
@@ -138,6 +141,10 @@ $(SINGLE_XO): $(SINGLE_KERNEL_SRC) $(KERNEL_HEADER) | env
 	@mkdir -p $(BUILD_DIR) $(REPORT_DIR) $(LOG_DIR)
 	@# v++ -c 只把 HLS C++ kernel 编译成 xo，不做平台 link。
 	cd $(LOG_DIR) && $(VPP) -c $(VPP_FLAGS) -k $(SINGLE_KERNEL_NAME) -o $@ $<
+
+$(TOP_PIPELINE_XO): $(TOP_PIPELINE_KERNEL_SRC) $(KERNEL_HEADER) | env
+	@mkdir -p $(BUILD_DIR) $(REPORT_DIR) $(LOG_DIR)
+	cd $(LOG_DIR) && $(VPP) -c $(VPP_FLAGS) -k $(TOP_PIPELINE_KERNEL_NAME) -o $@ $<
 
 $(STREAM_SOURCE_XO): $(STREAM_SOURCE_KERNEL_SRC) $(KERNEL_HEADER) $(STREAM_KERNEL_HEADER) | env
 	@mkdir -p $(BUILD_DIR) $(REPORT_DIR) $(LOG_DIR)
