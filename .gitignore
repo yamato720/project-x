@@ -1,6 +1,8 @@
 build/
 reports/
 logs/
+xilinx-local/
+hd_visual/
 .Xil/
 .run/
 *.log
