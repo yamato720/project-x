@@ -12,8 +12,8 @@
   "files.exclude": {
     "**/.Xil": true,
     "**/.ipcache": true,
-    "**/build": true,
-    "**/logs": true,
-    "**/reports": true
+    // "**/build": true,
+    "**/logs": true
+    // "**/reports": true
   }
 }
